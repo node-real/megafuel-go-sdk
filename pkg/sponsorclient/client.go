@@ -12,7 +12,7 @@ type Client interface {
 	// RmFromWhitelist removes a list of values from the whitelist of a policy
 	RmFromWhitelist(ctx context.Context, args WhiteListArgs) (bool, error)
 	// EmptyWhitelist clear the whitelist of a policy
-	EmptyWhitelist(ctx context.Context, args EmptyListArgs) (bool, error)
+	EmptyWhitelist(ctx context.Context, args EmptyWhiteListArgs) (bool, error)
 	// GetWhitelist returns the whitelist of a policy
 	GetWhitelist(ctx context.Context, args GetWhitelistArgs) (interface{}, error)
 }
@@ -48,7 +48,7 @@ func (c *client) RmFromWhitelist(ctx context.Context, args WhiteListArgs) (bool,
 	return result, nil
 }
 
-func (c *client) EmptyWhitelist(ctx context.Context, args EmptyListArgs) (bool, error) {
+func (c *client) EmptyWhitelist(ctx context.Context, args EmptyWhiteListArgs) (bool, error) {
 	var result bool
 	err := c.c.CallContext(ctx, &result, "pm_emptyWhitelist", args)
 	if err != nil {
