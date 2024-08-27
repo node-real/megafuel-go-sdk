@@ -27,6 +27,11 @@ type WhiteListArgs struct {
 	Values        []string      `json:"values"`        // a list of values for given WhitelistType.  The max length of this list is WhiteListDataMaxBatchSize. To insert more than WhiteListDataMaxBatchSize records, please invoke this API multiple times.
 }
 
+type EmptyListArgs struct {
+	PolicyUUID    uuid.UUID     `json:"policyUuid"`    // The uuid of policy for which this request is attempt to empty the white list values  . Required.
+	WhitelistType WhitelistType `json:"whitelistType"` // enum, supported values are "FromAccountWhitelist", "ToAccountWhitelist", "ContractMethodSigWhitelist", "BEP20ReceiverWhiteList"
+}
+
 type GetWhitelistArgs struct {
 	PolicyUUID    uuid.UUID     `json:"policyUuid"`    // The uuid of policy for which this request is attempt to fetch the white list. Required.
 	WhitelistType WhitelistType `json:"whitelistType"` // enum, supported values are "FromAccountWhitelist", "ToAccountWhitelist", "ContractMethodSigWhitelist", "BEP20ReceiverWhiteList"
