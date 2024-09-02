@@ -3,6 +3,9 @@ package paymasterclient
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/gofrs/uuid"
+
+	"github.com/node-real/megafuel-go-sdk/pkg/types"
 )
 
 type TransactionArgs struct {
@@ -42,4 +45,25 @@ type TransactionResponse struct {
 	Source          string          `json:"source"`          // user-agent
 	BornBlockNumber int64           `json:"bornBlockNumber"` // the height when the tx is sent to builders.
 	ChainID         int             `json:"chain_id"`
+}
+
+type SponsorTx struct {
+	TxHash          common.Hash    `json:"txHash"`
+	Address         common.Address `json:"address"`
+	BundleUUID      uuid.UUID      `json:"bundleUUID"`
+	Status          Status         `json:"status"`
+	GasPrice        *types.Big     `json:"gasPrice"`
+	GasFee          *types.Big     `json:"gasFee"`
+	BornBlockNumber int64          `json:"bornBlockNumber"` // the height when the tx is sent to builders.
+	ChainID         int            `json:"chain_id"`
+}
+
+type Bundle struct {
+	BundleUUID           uuid.UUID  `json:"bundleUUID"`
+	Status               Status     `json:"status"`
+	AvgGasPrice          *types.Big `json:"avgGasPrice"`
+	BornBlockNumber      int64      `json:"bornBlockNumber"` // the height when the tx is sent to builders.
+	ConfirmedBlockNumber int64      `json:"confirmedBlockNumber"`
+	ConfirmedDate        uint64     `json:"confirmedDate"`
+	ChainID              int        `json:"chain_id"`
 }

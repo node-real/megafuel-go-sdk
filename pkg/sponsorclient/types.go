@@ -1,7 +1,10 @@
 package sponsorclient
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/gofrs/uuid"
+
+	"github.com/node-real/megafuel-go-sdk/pkg/types"
 )
 
 // WhitelistType represents the type of whitelist.
@@ -37,4 +40,19 @@ type GetWhitelistArgs struct {
 	WhitelistType WhitelistType `json:"whitelistType"` // enum, supported values are "FromAccountWhitelist", "ToAccountWhitelist", "ContractMethodSigWhitelist", "BEP20ReceiverWhiteList"
 	Offset        int           `json:"offset"`        // Offset must be less than MaxOffset. Default value is 0
 	Limit         int           `json:"limit"`         // Limit must be less than MaxOffset. Default value is 0
+}
+
+type UserSpendData struct {
+	UserAddress   common.Address `json:"userAddress"`
+	GasCost       *types.Big     `json:"gasCost"`
+	GasCostCurDay *types.Big     `json:"gasCostCurDay"`
+	TxCountCurDay uint64         `json:"txCountCurDay"`
+	UpdateAt      uint64         `json:"updateAt"`
+	ChainID       int            `json:"chain_id"`
+}
+
+type PolicySpendData struct {
+	Cost     *types.Big `json:"cost"`
+	UpdateAt uint64     `json:"updateAt"`
+	ChainID  int        `json:"chain_id"`
 }

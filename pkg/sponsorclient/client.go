@@ -3,7 +3,9 @@ package sponsorclient
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/gofrs/uuid"
 )
 
 type Client interface {
@@ -15,6 +17,11 @@ type Client interface {
 	EmptyWhitelist(ctx context.Context, args EmptyWhiteListArgs) (bool, error)
 	// GetWhitelist returns the whitelist of a policy
 	GetWhitelist(ctx context.Context, args GetWhitelistArgs) (interface{}, error)
+
+	// GetUserSpendData returns the user spend data on a policy
+	GetUserSpendData(ctx context.Context, fromAddress common.Address, policyUUID uuid.UUID) (*UserSpendData, error)
+	// GetPolicySpendData returns the spend data of a policy
+	GetPolicySpendData(ctx context.Context, policyUUID uuid.UUID) (*PolicySpendData, error)
 }
 
 type client struct {
@@ -64,4 +71,22 @@ func (c *client) GetWhitelist(ctx context.Context, args GetWhitelistArgs) (inter
 		return nil, err
 	}
 	return result, nil
+}
+
+func (c *client) GetUserSpendData(ctx context.Context, fromAddress common.Address, policyUUID uuid.UUID) (*UserSpendData, error) {
+	var result UserSpendData
+	err := c.c.CallContext(ctx, &result, "pm_getUserSpendData", fromAddress, policyUUID)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *client) GetPolicySpendData(ctx context.Context, policyUUID uuid.UUID) (*PolicySpendData, error) {
+	var result PolicySpendData
+	err := c.c.CallContext(ctx, &result, "pm_getPolicySpendData", policyUUID)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
