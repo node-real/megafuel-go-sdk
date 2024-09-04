@@ -35,35 +35,37 @@ const (
 
 type TransactionResponse struct {
 	TxHash          common.Hash     `json:"txHash"`
-	BundleID        uint64          `json:"bundleID"`
+	BundleUUID      uuid.UUID       `json:"bundleUuid"`
 	FromAddress     common.Address  `json:"fromAddress"`
 	ToAddress       *common.Address `json:"ToAddress"`
+	Nonce           uint64          `json:"nonce"`
 	RawData         []byte          `json:"rawData"`
 	Status          Status          `json:"status"`
 	GasUsed         uint64          `json:"gasUsed"`
-	PolicyID        uint64          `json:"policyID"`
+	GasFee          *types.Big      `json:"gasFee"`
+	PolicyUUID      uuid.UUID       `json:"policyUuid"`
 	Source          string          `json:"source"`          // user-agent
 	BornBlockNumber int64           `json:"bornBlockNumber"` // the height when the tx is sent to builders.
-	ChainID         int             `json:"chain_id"`
+	ChainID         int             `json:"chainId"`
 }
 
 type SponsorTx struct {
 	TxHash          common.Hash    `json:"txHash"`
 	Address         common.Address `json:"address"`
-	BundleUUID      uuid.UUID      `json:"bundleUUID"`
+	BundleUUID      uuid.UUID      `json:"bundleUuid"`
 	Status          Status         `json:"status"`
 	GasPrice        *types.Big     `json:"gasPrice"`
 	GasFee          *types.Big     `json:"gasFee"`
 	BornBlockNumber int64          `json:"bornBlockNumber"` // the height when the tx is sent to builders.
-	ChainID         int            `json:"chain_id"`
+	ChainID         int            `json:"chainId"`
 }
 
 type Bundle struct {
-	BundleUUID           uuid.UUID  `json:"bundleUUID"`
+	BundleUUID           uuid.UUID  `json:"bundleUuid"`
 	Status               Status     `json:"status"`
 	AvgGasPrice          *types.Big `json:"avgGasPrice"`
 	BornBlockNumber      int64      `json:"bornBlockNumber"` // the height when the tx is sent to builders.
 	ConfirmedBlockNumber int64      `json:"confirmedBlockNumber"`
 	ConfirmedDate        uint64     `json:"confirmedDate"`
-	ChainID              int        `json:"chain_id"`
+	ChainID              int        `json:"chainId"`
 }

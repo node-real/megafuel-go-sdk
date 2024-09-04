@@ -25,6 +25,8 @@ type Client interface {
 	GetSponsorTxByBundleUUID(ctx context.Context, bundleUUID uuid.UUID) (sponsorTx *SponsorTx, err error)
 	// GetBundleByUUID returns a bundle by UUID
 	GetBundleByUUID(ctx context.Context, bundleUUID uuid.UUID) (bundle *Bundle, err error)
+	// GetTransactionCount returns the number of transactions sent from an address
+	GetTransactionCount(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash) (*hexutil.Uint64, error)
 }
 
 type client struct {
@@ -87,7 +89,7 @@ func (c *client) GetSponsorTxByTxHash(ctx context.Context, txHash common.Hash) (
 
 func (c *client) GetSponsorTxByBundleUUID(ctx context.Context, bundleUUID uuid.UUID) (*SponsorTx, error) {
 	var result SponsorTx
-	err := c.c.CallContext(ctx, &result, "pm_getSponsorTxByBundleUUID", bundleUUID)
+	err := c.c.CallContext(ctx, &result, "pm_getSponsorTxByBundleUuid", bundleUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +98,16 @@ func (c *client) GetSponsorTxByBundleUUID(ctx context.Context, bundleUUID uuid.U
 
 func (c *client) GetBundleByUUID(ctx context.Context, bundleUUID uuid.UUID) (*Bundle, error) {
 	var result Bundle
-	err := c.c.CallContext(ctx, &result, "pm_getBundleByUUID", bundleUUID)
+	err := c.c.CallContext(ctx, &result, "pm_getBundleByUuid", bundleUUID)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *client) GetTransactionCount(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash) (*hexutil.Uint64, error) {
+	var result hexutil.Uint64
+	err := c.c.CallContext(ctx, &result, "eth_getTransactionCount", address, blockNrOrHash)
 	if err != nil {
 		return nil, err
 	}
