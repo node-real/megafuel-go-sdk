@@ -1,8 +1,6 @@
 # megafuel-go-sdk
 
-This is Golang SDK for the MegaFuel clients, it provides a simple way to interact with the MegaFuel.
-
-For more information, please refer to the [API documentation](https://docs.nodereal.io/docs/megafuel-api).
+This Golang SDK is thin wrapper of MegaFuel clients, offering a streamlined interface to interact with the [MegaFuel](https://docs.nodereal.io/docs/megafuel-overview).
 
 ## Quick Start
 
