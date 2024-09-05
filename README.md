@@ -4,17 +4,12 @@ This Golang SDK is thin wrapper of MegaFuel clients, offering a streamlined inte
 
 ## Network Endpoint
 
-- BSC mainet: https://bsc-megafuel.nodereal.io
-- BSC testnet: https://bsc-megafuel-testnet.nodereal.io
-
-- BSC mainnet sponsor: https://open-platform.nodereal.io/<api-key>/megafuel
-- BSC testnet sponsor: https://open-platform.nodereal.io/<api-key>/megafuel-testnet
-
-- OpBNB mainnet: https://opbnb-megafuel.nodereal.io
-- OpBNB testnet: https://opbnb-megafuel-testnet.nodereal.io
-
-- OpBNB mainnet sponsor: https://open-platform.nodereal.io/<api-key>/opbnb-megafuel
-- OpBNB testnet sponsor: https://open-platform.nodereal.io/<api-key>/opbnb-megafuel-testnet
+|         Network          |        [Paymaster]( https://docs.nodereal.io/reference/pm-issponsorable)        |                         [Sponsor](https://docs.nodereal.io/reference/pm-addtowhitelist)                         |
+|:------------------------:|:-------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------:|
+|       BSC mainnet        |                        https://bsc-megafuel.nodereal.io                         |                              https://open-platform.nodereal.io/<api-key>/megafuel                               |
+|       BSC testnet        |                    https://bsc-megafuel-testnet.nodereal.io                     |                          https://open-platform.nodereal.io/<api-key>/megafuel-testnet                           |
+|      OpBNB mainnet       |                       https://opbnb-megafuel.nodereal.io                        |                              https://open-platform.nodereal.io/<api-key>/megafuel                               |
+|      OpBNB testnet       |                   https://opbnb-megafuel-testnet.nodereal.io                    |                          https://open-platform.nodereal.io/<api-key>/megafuel-testnet                           |
 
 ```shell
 
