@@ -11,15 +11,14 @@ This Golang SDK is thin wrapper of MegaFuel clients, offering a streamlined inte
 | opBNB mainnet |                       https://opbnb-megafuel.nodereal.io                        |                   https://open-platform.nodereal.io/{YOUR_API_KEY}/megafuel                    |
 | opBNB testnet |                   https://opbnb-megafuel-testnet.nodereal.io                    |               https://open-platform.nodereal.io/{YOUR_API_KEY}/megafuel-testnet                |
 
-```shell
 
 ## Quick Start
 
 1. Install dependency
 
- ```shell
- $ go get -u github.com/nodereal/megafuel-go-sdk
- ```
+```shell
+$ go get -u github.com/nodereal/megafuel-go-sdk
+```
 
 2. Example
 
@@ -67,8 +66,6 @@ func main() {
 	if err != nil || !success {
 		panic("failed to add token contract whitelist")
 	}
-
-	println(success)
 
 	// Connect to an Ethereum node (for transaction assembly)
 	client, err := ethclient.Dial(CHAIN_URL)
