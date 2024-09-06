@@ -1,0 +1,43 @@
+name: Test Case
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    env:
+      PAYMASTER_URL: ${{ secrets.PAYMASTER_URL }}
+      CHAIN_URL: ${{ secrets.CHAIN_URL }}
+      SPONSOR_URL: ${{ secrets.SPONSOR_URL }}
+      POLICY_UUID: ${{ secrets.POLICY_UUID }}
+      RECIPIENT_ADDRESS: ${{ secrets.RECIPIENT_ADDRESS }}
+      YOUR_PRIVATE_KEY: ${{ secrets.YOUR_PRIVATE_KEY }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+
+      - name: Set up Go environment
+        uses: actions/setup-go@v3
+        with:
+          go-version: '^1.21'
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: go test test/main.go -v

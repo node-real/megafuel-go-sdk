@@ -4,15 +4,16 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	"github.com/ethereum/go-ethereum/rpc"
 	"log"
 	"math/big"
+	"os"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/gofrs/uuid"
 
 	"github.com/node-real/megafuel-go-sdk/pkg/paymasterclient"
@@ -21,14 +22,20 @@ import (
 
 const PAYMASTER_URL = "https://opbnb-megafuel.nodereal.io/204"
 const CHAIN_URL = "https://opbnb-mainnet-rpc.bnbchain.org"
-const SPONSOR_URL = "https://open-platform.nodereal.io/23dcac9b19f6408a92a9d32add616755/megafuel"
-
-const POLICY_UUID = "4625f6a9-7260-41ec-a656-4608fdca329b"
+const POLICY_UUID = "72191372-5550-4cf6-956e-b70d1e4786cf"
 const RECIPIENT_ADDRESS = "0xDfbA0Ce6349C7205C8951304a67f36F65EBc1B2e"
-const YOUR_PRIVATE_KEY = "59ba8068eb256d520179e903f43dacf6d8d57d72bd306e1bd603fdb8c8da10e8"
 
 func main() {
-	sponsorClient, err := sponsorclient.New(context.Background(), SPONSOR_URL)
+	yourPrivateKey := os.Getenv("YOUR_PRIVATE_KEY")
+	if yourPrivateKey == "" {
+		log.Fatal("Environment variable YOUR_PRIVATE_KEY is not set")
+	}
+
+	sponsorURL := os.Getenv("SPONSOR_URL")
+	if sponsorURL == "" {
+		log.Fatal("Environment variable SPONSOR_URL is not set")
+	}
+	sponsorClient, err := sponsorclient.New(context.Background(), sponsorURL)
 	if err != nil {
 		panic(err)
 	}
@@ -58,7 +65,7 @@ func main() {
 	}
 
 	// Load your private key
-	privateKey, err := crypto.HexToECDSA(YOUR_PRIVATE_KEY)
+	privateKey, err := crypto.HexToECDSA(yourPrivateKey)
 	if err != nil {
 		log.Fatalf("Failed to load private key: %v", err)
 	}
