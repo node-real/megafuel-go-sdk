@@ -26,6 +26,7 @@ const PAYMASTER_URL = "https://bsc-megafuel-testnet.nodereal.io/97"
 
 var log = logrus.New()
 
+// paymasterSetup initializes a paymaster client using the environment variable.
 func paymasterSetup(t *testing.T) (*ethclient.Client, paymasterclient.Client, string, error) {
 	t.Helper()
 
@@ -54,13 +55,17 @@ func paymasterSetup(t *testing.T) (*ethclient.Client, paymasterclient.Client, st
 	return client, paymasterClient, yourPrivateKey, nil
 }
 
+// TestPaymasterAPI tests the critical functionalities related to the Paymaster API.
 func TestPaymasterAPI(t *testing.T) {
+	// Setup Ethereum client and Paymaster client. Ensure no errors during the setup.
 	client, paymasterClient, yourPrivateKey, err := paymasterSetup(t)
 	require.NoError(t, err, "failed to set up paymaster")
 
+	// Convert the private key from hex string to ECDSA format and check for errors.
 	privateKey, err := crypto.HexToECDSA(yourPrivateKey)
 	require.NoError(t, err, "Failed to load private key")
 
+	// Extract the public key from the private key and assert type casting to ECDSA.
 	publicKey := privateKey.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 	if !ok {
@@ -68,11 +73,14 @@ func TestPaymasterAPI(t *testing.T) {
 	}
 	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
 
+	// Fetch the current nonce for the account to ensure the transaction can be processed sequentially.
 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
 	require.NoError(t, err, "Failed to get nonce")
 
+	// Define the recipient Ethereum address.
 	toAddress := common.HexToAddress(RECIPIENT_ADDRESS)
 
+	// Construct a new Ethereum transaction.
 	tx := types.NewTx(&types.LegacyTx{
 		Nonce:    nonce,
 		GasPrice: big.NewInt(0),
@@ -81,6 +89,7 @@ func TestPaymasterAPI(t *testing.T) {
 		Value:    big.NewInt(0),
 	})
 
+	// Prepare a transaction argument for checking if it's sponsorable.
 	gasLimit := tx.Gas()
 	sponsorableTx := paymasterclient.TransactionArgs{
 		To:    &toAddress,
@@ -90,44 +99,57 @@ func TestPaymasterAPI(t *testing.T) {
 		Data:  &hexutil.Bytes{},
 	}
 
+	// Verify if the transaction can be sponsored under the current policy.
 	sponsorableInfo, err := paymasterClient.IsSponsorable(context.Background(), sponsorableTx)
 	require.NoError(t, err, "Error checking sponsorable status")
 	require.True(t, sponsorableInfo.Sponsorable)
 
+	// Retrieve the blockchain ID to ensure that the transaction is signed correctly.
 	chainID, err := client.ChainID(context.Background())
 	require.NoError(t, err, "Failed to get chain ID")
 
+	// Sign the transaction using the provided private key and the current chain ID.
 	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
 	require.NoError(t, err, "Failed to sign transaction")
 
+	// Marshal the signed transaction into a binary format for transmission.
 	txInput, err := signedTx.MarshalBinary()
 	require.NoError(t, err, "Failed to marshal transaction")
 
+	// Send the signed transaction and check for successful submission.
 	paymasterTx, err := paymasterClient.SendRawTransaction(context.Background(), txInput)
 	require.NoError(t, err, "Failed to send sponsorable transaction")
 	log.Infof("Sponsorable transaction sent: %s", signedTx.Hash())
 	log.Info("Waiting for transaction confirmation")
-	time.Sleep(5 * time.Second)
+	time.Sleep(5 * time.Second) // Consider replacing with a non-blocking wait or event-driven notification.
 
+	// Check the Paymaster client's chain ID for consistency.
 	payMasterChainID, err := paymasterClient.ChainID(context.Background())
 	require.NoError(t, err, "failed to get paymaster chain id")
 	assert.Equal(t, payMasterChainID, "0x61")
 
+	// Retrieve and verify the transaction details by its hash.
 	txResp, err := paymasterClient.GetGaslessTransactionByHash(context.Background(), paymasterTx)
 	require.NoError(t, err, "failed to GetGaslessTransactionByHash")
 	assert.Equal(t, txResp.TxHash.String(), paymasterTx.String())
 
+	// Check for the related transaction bundle based on the UUID.
 	bundleUuid := txResp.BundleUUID
 	sponsorTx, err := paymasterClient.GetSponsorTxByBundleUUID(context.Background(), bundleUuid)
 	require.NoError(t, err)
 
+	// Retrieve the full bundle using the UUID and verify its existence.
 	bundle, err := paymasterClient.GetBundleByUUID(context.Background(), bundleUuid)
 	require.NoError(t, err)
 
+	// Further validate the bundle by fetching the transaction via its hash.
 	sponsorTx, err = paymasterClient.GetSponsorTxByTxHash(context.Background(), sponsorTx.TxHash)
 	require.NoError(t, err)
 
+	// Log the UUID of the bundle for reference.
 	log.Infof("Bundle UUID: %s", bundle.BundleUUID)
+
+	// Obtain and verify the transaction count for the recipient address.
 	blockNumber := rpc.PendingBlockNumber
 	count, err := paymasterClient.GetTransactionCount(context.Background(), common.HexToAddress(RECIPIENT_ADDRESS), rpc.BlockNumberOrHash{BlockNumber: &blockNumber})
 	require.NoError(t, err, "failed to GetTransactionCount")
