@@ -22,6 +22,8 @@ import (
 	"github.com/node-real/megafuel-go-sdk/pkg/paymasterclient"
 )
 
+const PAYMASTER_URL = "https://bsc-megafuel-testnet.nodereal.io/97"
+
 var log = logrus.New()
 
 func paymasterSetup(t *testing.T) (*ethclient.Client, paymasterclient.Client, string, error) {

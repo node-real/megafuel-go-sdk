@@ -14,7 +14,6 @@ import (
 
 // Constants for API
 const (
-	PAYMASTER_URL     = "https://bsc-megafuel-testnet.nodereal.io/97"
 	POLICY_UUID       = "72191372-5550-4cf6-956e-b70d1e4786cf"
 	RECIPIENT_ADDRESS = "0xDE08B1Fd79b7016F8DD3Df11f7fa0FbfdF07c941"
 )
