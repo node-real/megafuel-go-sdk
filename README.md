@@ -6,10 +6,10 @@ This Golang SDK is thin wrapper of MegaFuel clients, offering a streamlined inte
 
 |    Network    |        [Paymaster]( https://docs.nodereal.io/reference/pm-issponsorable)        |                [Sponsor](https://docs.nodereal.io/reference/pm-addtowhitelist)                 |
 |:-------------:|:-------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------:|
-|  BSC mainnet  |                        https://bsc-megafuel.nodereal.io                         |                   https://open-platform.nodereal.io/{YOUR_API_KEY}/megafuel                    |
-|  BSC testnet  |                    https://bsc-megafuel-testnet.nodereal.io                     |               https://open-platform.nodereal.io/{YOUR_API_KEY}/megafuel-testnet                |
-| opBNB mainnet |                       https://opbnb-megafuel.nodereal.io                        |                   https://open-platform.nodereal.io/{YOUR_API_KEY}/megafuel                    |
-| opBNB testnet |                   https://opbnb-megafuel-testnet.nodereal.io                    |               https://open-platform.nodereal.io/{YOUR_API_KEY}/megafuel-testnet                |
+|  BSC mainnet  |                        https://bsc-megafuel.nodereal.io                         |                   https://open-platform-ap.nodereal.io/{YOUR_API_KEY}/megafuel                    |
+|  BSC testnet  |                    https://bsc-megafuel-testnet.nodereal.io                     |               https://open-platform-ap.nodereal.io/{YOUR_API_KEY}/megafuel-testnet                |
+| opBNB mainnet |                       https://opbnb-megafuel.nodereal.io                        |                   https://open-platform-ap.nodereal.io/{YOUR_API_KEY}/megafuel                    |
+| opBNB testnet |                   https://opbnb-megafuel-testnet.nodereal.io                    |               https://open-platform-ap.nodereal.io/{YOUR_API_KEY}/megafuel-testnet                |
 
 
 ## Quick Start
@@ -44,7 +44,7 @@ import (
 
 const PAYMASTER_URL = "https://bsc-megafuel-testnet.nodereal.io"
 const CHAIN_URL = "https://data-seed-prebsc-2-s1.binance.org:8545/"
-const SPONSOR_URL = "https://open-platform.nodereal.io/<api-key>/megafuel-testnet"
+const SPONSOR_URL = "https://open-platform-ap.nodereal.io/<api-key>/megafuel-testnet"
 
 const POLICY_UUID = "a2381160-xxxx-xxxx-xxxxceca86556834"
 const RECIPIENT_ADDRESS = "0x8e9......3EA2"
