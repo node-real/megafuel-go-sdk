@@ -2,6 +2,7 @@ package paymasterclient
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -11,7 +12,7 @@ import (
 
 type Client interface {
 	// ChainID returns the chain ID of the connected domain
-	ChainID(ctx context.Context) (string, error)
+	ChainID(ctx context.Context) (*big.Int, error)
 	// IsSponsorable checks if a transaction is sponsorable
 	IsSponsorable(ctx context.Context, tx TransactionArgs) (*IsSponsorableResponse, error)
 	// SendRawTransaction sends a raw transaction to the connected domain
@@ -26,7 +27,7 @@ type Client interface {
 	// GetBundleByUUID returns a bundle by UUID
 	GetBundleByUUID(ctx context.Context, bundleUUID uuid.UUID) (bundle *Bundle, err error)
 	// GetTransactionCount returns the number of transactions sent from an address
-	GetTransactionCount(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash) (*hexutil.Uint64, error)
+	GetTransactionCount(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash) (uint64, error)
 }
 
 type client struct {
@@ -42,13 +43,13 @@ func New(ctx context.Context, url string, options ...rpc.ClientOption) (Client, 
 	return &client{c}, nil
 }
 
-func (c *client) ChainID(ctx context.Context) (string, error) {
-	var result string
+func (c *client) ChainID(ctx context.Context) (*big.Int, error) {
+	var result hexutil.Big
 	err := c.c.CallContext(ctx, &result, "eth_chainId")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return result, nil
+	return (*big.Int)(&result), err
 }
 
 func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs) (*IsSponsorableResponse, error) {
@@ -105,11 +106,11 @@ func (c *client) GetBundleByUUID(ctx context.Context, bundleUUID uuid.UUID) (*Bu
 	return &result, nil
 }
 
-func (c *client) GetTransactionCount(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash) (*hexutil.Uint64, error) {
+func (c *client) GetTransactionCount(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash) (uint64, error) {
 	var result hexutil.Uint64
 	err := c.c.CallContext(ctx, &result, "eth_getTransactionCount", address, blockNrOrHash)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return &result, nil
+	return uint64(result), nil
 }
