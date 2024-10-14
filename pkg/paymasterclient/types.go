@@ -16,6 +16,14 @@ type TransactionArgs struct {
 	Data  *hexutil.Bytes  `json:"data"`
 }
 
+type IsSponsorableOptions struct {
+	PrivatePolicyUUID string
+}
+
+type SendRawTransactionOptions struct {
+	PrivatePolicyUUID string
+}
+
 type IsSponsorableResponse struct {
 	Sponsorable    bool   `json:"sponsorable"`              // Sponsorable is a mandatory field, bool value, indicating if a given tx is able to sponsor.
 	SponsorName    string `json:"sponsorName,omitempty"`    // SponsorName is an optional field, string value, shows the name of the policy sponsor.

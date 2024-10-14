@@ -14,9 +14,9 @@ type Client interface {
 	// ChainID returns the chain ID of the connected domain
 	ChainID(ctx context.Context) (*big.Int, error)
 	// IsSponsorable checks if a transaction is sponsorable
-	IsSponsorable(ctx context.Context, tx TransactionArgs) (*IsSponsorableResponse, error)
+	IsSponsorable(ctx context.Context, tx TransactionArgs, opts IsSponsorableOptions) (*IsSponsorableResponse, error)
 	// SendRawTransaction sends a raw transaction to the connected domain
-	SendRawTransaction(ctx context.Context, input hexutil.Bytes) (common.Hash, error)
+	SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts SendRawTransactionOptions) (common.Hash, error)
 	// GetGaslessTransactionByHash returns a gasless transaction by hash
 	GetGaslessTransactionByHash(ctx context.Context, txHash common.Hash) (userTx *TransactionResponse, err error)
 
@@ -31,39 +31,65 @@ type Client interface {
 }
 
 type client struct {
-	c *rpc.Client
+	userClient    *rpc.Client
+	sponsorClient *rpc.Client
 }
 
-func New(ctx context.Context, url string, options ...rpc.ClientOption) (Client, error) {
-	c, err := rpc.DialOptions(ctx, url, options...)
+func New(ctx context.Context, userURL, sponsorURL string, options ...rpc.ClientOption) (Client, error) {
+	userClient, err := rpc.DialOptions(ctx, userURL, options...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &client{c}, nil
+	sponsorClient, err := rpc.DialOptions(ctx, sponsorURL, options...)
+	if err != nil {
+		userClient.Close() // Close the user client if user client creation fails
+		return nil, err
+	}
+
+	return &client{
+		userClient:    userClient,
+		sponsorClient: sponsorClient,
+	}, nil
 }
 
 func (c *client) ChainID(ctx context.Context) (*big.Int, error) {
 	var result hexutil.Big
-	err := c.c.CallContext(ctx, &result, "eth_chainId")
+	err := c.userClient.CallContext(ctx, &result, "eth_chainId")
 	if err != nil {
 		return nil, err
 	}
 	return (*big.Int)(&result), err
 }
 
-func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs) (*IsSponsorableResponse, error) {
+func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs, opts IsSponsorableOptions) (*IsSponsorableResponse, error) {
 	var result IsSponsorableResponse
-	err := c.c.CallContext(ctx, &result, "pm_isSponsorable", tx)
+	if opts.PrivatePolicyUUID != "" {
+		c.sponsorClient.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
+		err := c.sponsorClient.CallContext(ctx, &result, "pm_isSponsorable", tx)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
+	}
+	err := c.userClient.CallContext(ctx, &result, "pm_isSponsorable", tx)
 	if err != nil {
 		return nil, err
 	}
 	return &result, nil
 }
 
-func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes) (common.Hash, error) {
+func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts SendRawTransactionOptions) (common.Hash, error) {
 	var result common.Hash
-	err := c.c.CallContext(ctx, &result, "eth_sendRawTransaction", input)
+	if opts.PrivatePolicyUUID != "" {
+		c.sponsorClient.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
+		err := c.sponsorClient.CallContext(ctx, &result, "eth_sendRawTransaction", input)
+		if err != nil {
+			return common.Hash{}, err
+		}
+		return result, nil
+	}
+	err := c.userClient.CallContext(ctx, &result, "eth_sendRawTransaction", input)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -72,7 +98,7 @@ func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes) (c
 
 func (c *client) GetGaslessTransactionByHash(ctx context.Context, txHash common.Hash) (*TransactionResponse, error) {
 	var result TransactionResponse
-	err := c.c.CallContext(ctx, &result, "eth_getGaslessTransactionByHash", txHash)
+	err := c.userClient.CallContext(ctx, &result, "eth_getGaslessTransactionByHash", txHash)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +107,7 @@ func (c *client) GetGaslessTransactionByHash(ctx context.Context, txHash common.
 
 func (c *client) GetSponsorTxByTxHash(ctx context.Context, txHash common.Hash) (*SponsorTx, error) {
 	var result SponsorTx
-	err := c.c.CallContext(ctx, &result, "pm_getSponsorTxByTxHash", txHash)
+	err := c.userClient.CallContext(ctx, &result, "pm_getSponsorTxByTxHash", txHash)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +116,7 @@ func (c *client) GetSponsorTxByTxHash(ctx context.Context, txHash common.Hash) (
 
 func (c *client) GetSponsorTxByBundleUUID(ctx context.Context, bundleUUID uuid.UUID) (*SponsorTx, error) {
 	var result SponsorTx
-	err := c.c.CallContext(ctx, &result, "pm_getSponsorTxByBundleUuid", bundleUUID)
+	err := c.userClient.CallContext(ctx, &result, "pm_getSponsorTxByBundleUuid", bundleUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +125,7 @@ func (c *client) GetSponsorTxByBundleUUID(ctx context.Context, bundleUUID uuid.U
 
 func (c *client) GetBundleByUUID(ctx context.Context, bundleUUID uuid.UUID) (*Bundle, error) {
 	var result Bundle
-	err := c.c.CallContext(ctx, &result, "pm_getBundleByUuid", bundleUUID)
+	err := c.userClient.CallContext(ctx, &result, "pm_getBundleByUuid", bundleUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +134,7 @@ func (c *client) GetBundleByUUID(ctx context.Context, bundleUUID uuid.UUID) (*Bu
 
 func (c *client) GetTransactionCount(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash) (uint64, error) {
 	var result hexutil.Uint64
-	err := c.c.CallContext(ctx, &result, "eth_getTransactionCount", address, blockNrOrHash)
+	err := c.userClient.CallContext(ctx, &result, "eth_getTransactionCount", address, blockNrOrHash)
 	if err != nil {
 		return 0, err
 	}
