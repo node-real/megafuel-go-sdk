@@ -14,9 +14,9 @@ type Client interface {
 	// ChainID returns the chain ID of the connected domain
 	ChainID(ctx context.Context) (*big.Int, error)
 	// IsSponsorable checks if a transaction is sponsorable
-	IsSponsorable(ctx context.Context, tx TransactionArgs, opts IsSponsorableOptions) (*IsSponsorableResponse, error)
+	IsSponsorable(ctx context.Context, tx TransactionArgs, opts *IsSponsorableOptions) (*IsSponsorableResponse, error)
 	// SendRawTransaction sends a raw transaction to the connected domain
-	SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts SendRawTransactionOptions) (common.Hash, error)
+	SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts *SendRawTransactionOptions) (common.Hash, error)
 	// GetGaslessTransactionByHash returns a gasless transaction by hash
 	GetGaslessTransactionByHash(ctx context.Context, txHash common.Hash) (userTx *TransactionResponse, err error)
 
@@ -62,9 +62,9 @@ func (c *client) ChainID(ctx context.Context) (*big.Int, error) {
 	return (*big.Int)(&result), err
 }
 
-func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs, opts IsSponsorableOptions) (*IsSponsorableResponse, error) {
+func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs, opts *IsSponsorableOptions) (*IsSponsorableResponse, error) {
 	var result IsSponsorableResponse
-	if opts.PrivatePolicyUUID != "" {
+	if opts != nil && opts.PrivatePolicyUUID != "" {
 		c.sponsorClient.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
 		err := c.sponsorClient.CallContext(ctx, &result, "pm_isSponsorable", tx)
 		if err != nil {
@@ -79,12 +79,12 @@ func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs, opts IsS
 	return &result, nil
 }
 
-func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts SendRawTransactionOptions) (common.Hash, error) {
+func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts *SendRawTransactionOptions) (common.Hash, error) {
 	var result common.Hash
-	if opts.UserAgent != "" {
+	if opts != nil && opts.UserAgent != "" {
 		c.sponsorClient.SetHeader("User-Agent", opts.UserAgent)
 	}
-	if opts.PrivatePolicyUUID != "" {
+	if opts != nil && opts.PrivatePolicyUUID != "" {
 		c.sponsorClient.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
 		err := c.sponsorClient.CallContext(ctx, &result, "eth_sendRawTransaction", input)
 		if err != nil {

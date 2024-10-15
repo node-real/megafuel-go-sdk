@@ -103,7 +103,7 @@ func TestPaymasterAPI(t *testing.T) {
 	}
 
 	// Verify if the transaction can be sponsored under the current policy.
-	sponsorableInfo, err := paymasterClient.IsSponsorable(context.Background(), sponsorableTx, paymasterclient.IsSponsorableOptions{})
+	sponsorableInfo, err := paymasterClient.IsSponsorable(context.Background(), sponsorableTx, nil)
 	require.NoError(t, err, "Error checking sponsorable status")
 	require.True(t, sponsorableInfo.Sponsorable)
 
@@ -120,7 +120,7 @@ func TestPaymasterAPI(t *testing.T) {
 	require.NoError(t, err, "Failed to marshal transaction")
 
 	// Send the signed transaction and check for successful submission.
-	paymasterTx, err := paymasterClient.SendRawTransaction(context.Background(), txInput, paymasterclient.SendRawTransactionOptions{})
+	paymasterTx, err := paymasterClient.SendRawTransaction(context.Background(), txInput, nil)
 	require.NoError(t, err, "Failed to send sponsorable transaction")
 	log.Infof("Sponsorable transaction sent: %s", signedTx.Hash())
 	log.Info("Waiting for transaction confirmation")
@@ -185,7 +185,7 @@ func TestPaymasterAPI(t *testing.T) {
 		Data:  &hexutil.Bytes{},
 	}
 
-	privatePolicySponsorableInfo, err := paymasterClient.IsSponsorable(context.Background(), privatePolicySponsorableTx, paymasterclient.IsSponsorableOptions{PrivatePolicyUUID: PRIVATE_POLICY})
+	privatePolicySponsorableInfo, err := paymasterClient.IsSponsorable(context.Background(), privatePolicySponsorableTx, &paymasterclient.IsSponsorableOptions{PrivatePolicyUUID: PRIVATE_POLICY})
 	require.NoError(t, err, "Error checking sponsorable private policy status")
 	require.True(t, privatePolicySponsorableInfo.Sponsorable)
 
@@ -201,7 +201,7 @@ func TestPaymasterAPI(t *testing.T) {
 	txInput, err = signedTx.MarshalBinary()
 	require.NoError(t, err, "Failed to marshal transaction")
 
-	_, err = paymasterClient.SendRawTransaction(context.Background(), txInput, paymasterclient.SendRawTransactionOptions{PrivatePolicyUUID: PRIVATE_POLICY, UserAgent: "Test User Agent"})
+	_, err = paymasterClient.SendRawTransaction(context.Background(), txInput, &paymasterclient.SendRawTransactionOptions{PrivatePolicyUUID: PRIVATE_POLICY, UserAgent: "Test User Agent"})
 	require.NoError(t, err, "Failed to send sponsorable private policy transaction")
 	log.Infof("Sponsorable private policy transaction sent: %s", signedTx.Hash())
 }
