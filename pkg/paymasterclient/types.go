@@ -22,6 +22,7 @@ type IsSponsorableOptions struct {
 
 type SendRawTransactionOptions struct {
 	PrivatePolicyUUID string
+	UserAgent         string
 }
 
 type IsSponsorableResponse struct {

@@ -81,6 +81,9 @@ func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs, opts IsS
 
 func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts SendRawTransactionOptions) (common.Hash, error) {
 	var result common.Hash
+	if opts.UserAgent != "" {
+		c.sponsorClient.SetHeader("User-Agent", opts.UserAgent)
+	}
 	if opts.PrivatePolicyUUID != "" {
 		c.sponsorClient.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
 		err := c.sponsorClient.CallContext(ctx, &result, "eth_sendRawTransaction", input)
