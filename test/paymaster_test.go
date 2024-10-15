@@ -201,7 +201,7 @@ func TestPaymasterAPI(t *testing.T) {
 	txInput, err = signedTx.MarshalBinary()
 	require.NoError(t, err, "Failed to marshal transaction")
 
-	_, err = paymasterClient.SendRawTransaction(context.Background(), txInput, paymasterclient.SendRawTransactionOptions{PrivatePolicyUUID: PRIVATE_POLICY})
+	_, err = paymasterClient.SendRawTransaction(context.Background(), txInput, paymasterclient.SendRawTransactionOptions{PrivatePolicyUUID: PRIVATE_POLICY, UserAgent: "Test User Agent"})
 	require.NoError(t, err, "Failed to send sponsorable private policy transaction")
 	log.Infof("Sponsorable private policy transaction sent: %s", signedTx.Hash())
 }
