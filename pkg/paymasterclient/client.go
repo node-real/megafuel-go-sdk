@@ -31,89 +31,70 @@ type Client interface {
 }
 
 type client struct {
-	userClient    *rpc.Client
-	sponsorClient *rpc.Client
+	c *rpc.Client
 }
 
-// New creates a new Client with an optional sponsorURL.
-// If sponsorURL is provided, it enables the use of private policies.
-// The sponsorURL is typically in the format: "https://open-platform-ap.nodereal.io/xxxx/megafuel-testnet"
-// PrivatePolicyUUID can only be used when sponsorURL is provided.
-func New(ctx context.Context, userURL string, sponsorURL *string, options ...rpc.ClientOption) (Client, error) {
-	userClient, err := rpc.DialOptions(ctx, userURL, options...)
+func New(ctx context.Context, userURL string, options ...rpc.ClientOption) (Client, error) {
+	c, err := rpc.DialOptions(ctx, userURL, options...)
 	if err != nil {
 		return nil, err
 	}
 
-	var sponsorClient *rpc.Client
-	if sponsorURL != nil {
-		sponsorClient, err = rpc.DialOptions(ctx, *sponsorURL, options...)
-		if err != nil {
-			userClient.Close() // Close the user client if sponsor client creation fails
-			return nil, err
-		}
-	}
-
-	return &client{
-		userClient:    userClient,
-		sponsorClient: sponsorClient,
-	}, nil
+	return &client{c}, nil
 }
 
 func (c *client) ChainID(ctx context.Context) (*big.Int, error) {
 	var result hexutil.Big
-	err := c.userClient.CallContext(ctx, &result, "eth_chainId")
+	err := c.c.CallContext(ctx, &result, "eth_chainId")
 	if err != nil {
 		return nil, err
 	}
 	return (*big.Int)(&result), err
 }
 
+// IsSponsorable checks if a transaction is sponsorable.
+// If opts.PrivatePolicyUUID is set (for sponsor client use only), it will be included in the request headers.
 func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs, opts *IsSponsorableOptions) (*IsSponsorableResponse, error) {
 	var result IsSponsorableResponse
-	if c.sponsorClient != nil && opts != nil && opts.PrivatePolicyUUID != "" {
-		c.sponsorClient.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
-		err := c.sponsorClient.CallContext(ctx, &result, "pm_isSponsorable", tx)
-		if err != nil {
-			return nil, err
-		}
-		return &result, nil
+
+	if opts != nil && opts.PrivatePolicyUUID != "" {
+		c.c.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
 	}
-	err := c.userClient.CallContext(ctx, &result, "pm_isSponsorable", tx)
+
+	err := c.c.CallContext(ctx, &result, "pm_isSponsorable", tx)
 	if err != nil {
 		return nil, err
 	}
+
 	return &result, nil
 }
 
+// SendRawTransaction sends a raw transaction to the connected domain.
+// If opts.PrivatePolicyUUID is set (for sponsor client use only), it will be included in the request headers.
+// opts.UserAgent can be set for both sponsor and paymaster client calls.
 func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts *SendRawTransactionOptions) (common.Hash, error) {
 	var result common.Hash
-	if c.sponsorClient != nil {
-		if opts != nil && opts.UserAgent != "" {
-			c.sponsorClient.SetHeader("User-Agent", opts.UserAgent)
+
+	if opts != nil {
+		if opts.UserAgent != "" {
+			c.c.SetHeader("User-Agent", opts.UserAgent)
 		}
-		if opts != nil && opts.PrivatePolicyUUID != "" {
-			c.sponsorClient.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
-			err := c.sponsorClient.CallContext(ctx, &result, "eth_sendRawTransaction", input)
-			if err != nil {
-				return common.Hash{}, err
-			}
-			return result, nil
+		if opts.PrivatePolicyUUID != "" {
+			c.c.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
 		}
 	}
-	if opts != nil && opts.UserAgent != "" {
-		c.userClient.SetHeader("User-Agent", opts.UserAgent)
-	}
-	err := c.userClient.CallContext(ctx, &result, "eth_sendRawTransaction", input)
+
+	err := c.c.CallContext(ctx, &result, "eth_sendRawTransaction", input)
 	if err != nil {
 		return common.Hash{}, err
 	}
+
 	return result, nil
 }
 
 func (c *client) GetGaslessTransactionByHash(ctx context.Context, txHash common.Hash) (*TransactionResponse, error) {
 	var result TransactionResponse
-	err := c.userClient.CallContext(ctx, &result, "eth_getGaslessTransactionByHash", txHash)
+	err := c.c.CallContext(ctx, &result, "eth_getGaslessTransactionByHash", txHash)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +103,7 @@ func (c *client) GetGaslessTransactionByHash(ctx context.Context, txHash common.
 
 func (c *client) GetSponsorTxByTxHash(ctx context.Context, txHash common.Hash) (*SponsorTx, error) {
 	var result SponsorTx
-	err := c.userClient.CallContext(ctx, &result, "pm_getSponsorTxByTxHash", txHash)
+	err := c.c.CallContext(ctx, &result, "pm_getSponsorTxByTxHash", txHash)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +112,7 @@ func (c *client) GetSponsorTxByTxHash(ctx context.Context, txHash common.Hash) (
 
 func (c *client) GetSponsorTxByBundleUUID(ctx context.Context, bundleUUID uuid.UUID) (*SponsorTx, error) {
 	var result SponsorTx
-	err := c.userClient.CallContext(ctx, &result, "pm_getSponsorTxByBundleUuid", bundleUUID)
+	err := c.c.CallContext(ctx, &result, "pm_getSponsorTxByBundleUuid", bundleUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +121,7 @@ func (c *client) GetSponsorTxByBundleUUID(ctx context.Context, bundleUUID uuid.U
 
 func (c *client) GetBundleByUUID(ctx context.Context, bundleUUID uuid.UUID) (*Bundle, error) {
 	var result Bundle
-	err := c.userClient.CallContext(ctx, &result, "pm_getBundleByUuid", bundleUUID)
+	err := c.c.CallContext(ctx, &result, "pm_getBundleByUuid", bundleUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +130,7 @@ func (c *client) GetBundleByUUID(ctx context.Context, bundleUUID uuid.UUID) (*Bu
 
 func (c *client) GetTransactionCount(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash) (uint64, error) {
 	var result hexutil.Uint64
-	err := c.userClient.CallContext(ctx, &result, "eth_getTransactionCount", address, blockNrOrHash)
+	err := c.c.CallContext(ctx, &result, "eth_getTransactionCount", address, blockNrOrHash)
 	if err != nil {
 		return 0, err
 	}

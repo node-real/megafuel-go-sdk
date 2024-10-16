@@ -6,8 +6,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/gofrs/uuid"
+
+	"github.com/node-real/megafuel-go-sdk/pkg/paymasterclient"
 )
 
+// Client interface defines the methods available for the sponsor client.
+// This client combines sponsor-specific functionality with all paymaster client (USER API) methods.
 type Client interface {
 	// AddToWhitelist adds a list of values to the whitelist of a policy
 	AddToWhitelist(ctx context.Context, args WhiteListArgs) (bool, error)
@@ -22,10 +26,12 @@ type Client interface {
 	GetUserSpendData(ctx context.Context, fromAddress common.Address, policyUUID uuid.UUID) (*UserSpendData, error)
 	// GetPolicySpendData returns the spend data of a policy
 	GetPolicySpendData(ctx context.Context, policyUUID uuid.UUID) (*PolicySpendData, error)
+	paymasterclient.Client
 }
 
 type client struct {
 	c *rpc.Client
+	paymasterclient.Client
 }
 
 func New(ctx context.Context, url string, options ...rpc.ClientOption) (Client, error) {
@@ -34,7 +40,11 @@ func New(ctx context.Context, url string, options ...rpc.ClientOption) (Client, 
 		return nil, err
 	}
 
-	return &client{c}, nil
+	c2, err := paymasterclient.New(ctx, url, options...)
+	if err != nil {
+		return nil, err
+	}
+	return &client{c, c2}, nil
 }
 
 func (c *client) AddToWhitelist(ctx context.Context, args WhiteListArgs) (bool, error) {
