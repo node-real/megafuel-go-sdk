@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	PAYMASTER_URL  = "https://bsc-megafuel-testnet.nodereal.io/97"
+	PAYMASTER_URL  = "https://bsc-megafuel-testnet.nodereal.io/"
 	PRIVATE_POLICY = "90f1ba4c-1f93-4759-b8a9-da4d59c668b4"
 )
 
