@@ -101,6 +101,9 @@ func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes, op
 			return result, nil
 		}
 	}
+	if opts != nil && opts.UserAgent != "" {
+		c.userClient.SetHeader("User-Agent", opts.UserAgent)
+	}
 	err := c.userClient.CallContext(ctx, &result, "eth_sendRawTransaction", input)
 	if err != nil {
 		return common.Hash{}, err
