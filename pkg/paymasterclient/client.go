@@ -35,16 +35,23 @@ type client struct {
 	sponsorClient *rpc.Client
 }
 
-func New(ctx context.Context, userURL, sponsorURL string, options ...rpc.ClientOption) (Client, error) {
+// New creates a new Client with an optional sponsorURL.
+// If sponsorURL is provided, it enables the use of private policies.
+// The sponsorURL is typically in the format: "https://open-platform-ap.nodereal.io/xxxx/megafuel-testnet"
+// PrivatePolicyUUID can only be used when sponsorURL is provided.
+func New(ctx context.Context, userURL string, sponsorURL *string, options ...rpc.ClientOption) (Client, error) {
 	userClient, err := rpc.DialOptions(ctx, userURL, options...)
 	if err != nil {
 		return nil, err
 	}
 
-	sponsorClient, err := rpc.DialOptions(ctx, sponsorURL, options...)
-	if err != nil {
-		userClient.Close() // Close the user client if user client creation fails
-		return nil, err
+	var sponsorClient *rpc.Client
+	if sponsorURL != nil {
+		sponsorClient, err = rpc.DialOptions(ctx, *sponsorURL, options...)
+		if err != nil {
+			userClient.Close() // Close the user client if sponsor client creation fails
+			return nil, err
+		}
 	}
 
 	return &client{
@@ -64,7 +71,7 @@ func (c *client) ChainID(ctx context.Context) (*big.Int, error) {
 
 func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs, opts *IsSponsorableOptions) (*IsSponsorableResponse, error) {
 	var result IsSponsorableResponse
-	if opts != nil && opts.PrivatePolicyUUID != "" {
+	if c.sponsorClient != nil && opts != nil && opts.PrivatePolicyUUID != "" {
 		c.sponsorClient.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
 		err := c.sponsorClient.CallContext(ctx, &result, "pm_isSponsorable", tx)
 		if err != nil {
@@ -81,16 +88,18 @@ func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs, opts *Is
 
 func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts *SendRawTransactionOptions) (common.Hash, error) {
 	var result common.Hash
-	if opts != nil && opts.UserAgent != "" {
-		c.sponsorClient.SetHeader("User-Agent", opts.UserAgent)
-	}
-	if opts != nil && opts.PrivatePolicyUUID != "" {
-		c.sponsorClient.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
-		err := c.sponsorClient.CallContext(ctx, &result, "eth_sendRawTransaction", input)
-		if err != nil {
-			return common.Hash{}, err
+	if c.sponsorClient != nil {
+		if opts != nil && opts.UserAgent != "" {
+			c.sponsorClient.SetHeader("User-Agent", opts.UserAgent)
 		}
-		return result, nil
+		if opts != nil && opts.PrivatePolicyUUID != "" {
+			c.sponsorClient.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
+			err := c.sponsorClient.CallContext(ctx, &result, "eth_sendRawTransaction", input)
+			if err != nil {
+				return common.Hash{}, err
+			}
+			return result, nil
+		}
 	}
 	err := c.userClient.CallContext(ctx, &result, "eth_sendRawTransaction", input)
 	if err != nil {

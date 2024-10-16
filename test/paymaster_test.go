@@ -50,7 +50,8 @@ func paymasterSetup(t *testing.T) (*ethclient.Client, paymasterclient.Client, st
 	}
 
 	// Create a PaymasterClient (for transaction sending)
-	paymasterClient, err := paymasterclient.New(context.Background(), PAYMASTER_URL, fmt.Sprintf("https://open-platform-ap.nodereal.io/%s/megafuel-testnet/97", key))
+	sponsorURL := fmt.Sprintf("https://open-platform-ap.nodereal.io/%s/megafuel-testnet/97", key)
+	paymasterClient, err := paymasterclient.New(context.Background(), PAYMASTER_URL, &sponsorURL)
 	if err != nil {
 		log.Fatalf("Failed to create PaymasterClient: %v", err)
 	}
