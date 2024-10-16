@@ -16,6 +16,12 @@ type TransactionArgs struct {
 	Data  *hexutil.Bytes  `json:"data"`
 }
 
+// TransactionOptions defines the options for the SendRawTransaction method.
+type TransactionOptions struct {
+	// UserAgent is an optional field to set a custom User-Agent header for the request.
+	UserAgent string
+}
+
 type IsSponsorableResponse struct {
 	Sponsorable    bool   `json:"sponsorable"`              // Sponsorable is a mandatory field, bool value, indicating if a given tx is able to sponsor.
 	SponsorName    string `json:"sponsorName,omitempty"`    // SponsorName is an optional field, string value, shows the name of the policy sponsor.

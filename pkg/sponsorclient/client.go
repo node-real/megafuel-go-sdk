@@ -33,7 +33,6 @@ func New(ctx context.Context, url string, options ...rpc.ClientOption) (Client, 
 	if err != nil {
 		return nil, err
 	}
-
 	return &client{c}, nil
 }
 
