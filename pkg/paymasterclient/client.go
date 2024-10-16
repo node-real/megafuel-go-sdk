@@ -14,7 +14,7 @@ type Client interface {
 	// ChainID returns the chain ID of the connected domain
 	ChainID(ctx context.Context) (*big.Int, error)
 	// IsSponsorable checks if a transaction is sponsorable
-	IsSponsorable(ctx context.Context, tx TransactionArgs, opts *IsSponsorableOptions) (*IsSponsorableResponse, error)
+	IsSponsorable(ctx context.Context, tx TransactionArgs) (*IsSponsorableResponse, error)
 	// SendRawTransaction sends a raw transaction to the connected domain
 	SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts *SendRawTransactionOptions) (common.Hash, error)
 	// GetGaslessTransactionByHash returns a gasless transaction by hash
@@ -31,16 +31,31 @@ type Client interface {
 }
 
 type client struct {
-	c *rpc.Client
+	c                 *rpc.Client
+	PrivatePolicyUUID *string
 }
 
-func New(ctx context.Context, userURL string, options ...rpc.ClientOption) (Client, error) {
-	c, err := rpc.DialOptions(ctx, userURL, options...)
+// New creates a new Client with the given URL and options.
+// The URL is typically in the format of https://bsc-megafuel.nodereal.io/
+func New(ctx context.Context, url string, options ...rpc.ClientOption) (Client, error) {
+	c, err := rpc.DialOptions(ctx, url, options...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &client{c}, nil
+	return &client{c, nil}, nil
+}
+
+// NewPrivatePaymaster creates a new Client with private policy functionality.
+// The URL for this function should be in the format:
+// https://open-platform-ap.nodereal.io/{$apikey}/megafuel
+func NewPrivatePaymaster(ctx context.Context, url, privatePolicyUUID string, options ...rpc.ClientOption) (Client, error) {
+	c, err := rpc.DialOptions(ctx, url, options...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &client{c, &privatePolicyUUID}, nil
 }
 
 func (c *client) ChainID(ctx context.Context) (*big.Int, error) {
@@ -52,13 +67,11 @@ func (c *client) ChainID(ctx context.Context) (*big.Int, error) {
 	return (*big.Int)(&result), err
 }
 
-// IsSponsorable checks if a transaction is sponsorable.
-// If opts.PrivatePolicyUUID is set (for sponsor client use only), it will be included in the request headers.
-func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs, opts *IsSponsorableOptions) (*IsSponsorableResponse, error) {
+func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs) (*IsSponsorableResponse, error) {
 	var result IsSponsorableResponse
 
-	if opts != nil && opts.PrivatePolicyUUID != "" {
-		c.c.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
+	if c.PrivatePolicyUUID != nil {
+		c.c.SetHeader("X-MegaFuel-Policy-Uuid", *c.PrivatePolicyUUID)
 	}
 
 	err := c.c.CallContext(ctx, &result, "pm_isSponsorable", tx)
@@ -69,9 +82,6 @@ func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs, opts *Is
 	return &result, nil
 }
 
-// SendRawTransaction sends a raw transaction to the connected domain.
-// If opts.PrivatePolicyUUID is set (for sponsor client use only), it will be included in the request headers.
-// opts.UserAgent can be set for both sponsor and paymaster client calls.
 func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts *SendRawTransactionOptions) (common.Hash, error) {
 	var result common.Hash
 
@@ -79,9 +89,10 @@ func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes, op
 		if opts.UserAgent != "" {
 			c.c.SetHeader("User-Agent", opts.UserAgent)
 		}
-		if opts.PrivatePolicyUUID != "" {
-			c.c.SetHeader("X-MegaFuel-Policy-Uuid", opts.PrivatePolicyUUID)
-		}
+	}
+
+	if c.PrivatePolicyUUID != nil {
+		c.c.SetHeader("X-MegaFuel-Policy-Uuid", *c.PrivatePolicyUUID)
 	}
 
 	err := c.c.CallContext(ctx, &result, "eth_sendRawTransaction", input)

@@ -16,23 +16,8 @@ type TransactionArgs struct {
 	Data  *hexutil.Bytes  `json:"data"`
 }
 
-// IsSponsorableOptions defines the options for the IsSponsorable method.
-type IsSponsorableOptions struct {
-	// PrivatePolicyUUID is the UUID of a private policy.
-	// This field should only be set when using a sponsor client.
-	// When set, it allows the use of a private policy for the sponsorable check.
-	// For paymaster client calls, this field should be left empty.
-	PrivatePolicyUUID string
-}
-
 // SendRawTransactionOptions defines the options for the SendRawTransaction method.
 type SendRawTransactionOptions struct {
-	// PrivatePolicyUUID is the UUID of a private policy.
-	// This field should only be set when using a sponsor client.
-	// When set, it allows the use of a private policy for the transaction.
-	// For paymaster client calls, this field should be left empty.
-	PrivatePolicyUUID string
-
 	// UserAgent is an optional field to set a custom User-Agent header for the request.
 	UserAgent string
 }
