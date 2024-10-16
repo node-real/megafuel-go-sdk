@@ -16,8 +16,8 @@ type TransactionArgs struct {
 	Data  *hexutil.Bytes  `json:"data"`
 }
 
-// SendRawTransactionOptions defines the options for the SendRawTransaction method.
-type SendRawTransactionOptions struct {
+// TransactionOptions defines the options for the SendRawTransaction method.
+type TransactionOptions struct {
 	// UserAgent is an optional field to set a custom User-Agent header for the request.
 	UserAgent string
 }

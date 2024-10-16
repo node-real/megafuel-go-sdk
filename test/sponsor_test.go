@@ -26,7 +26,7 @@ func sponsorSetup(t *testing.T) (sponsorclient.Client, error) {
 	if key == "" {
 		log.Fatal("Environment variable OPEN_PLATFORM_PRIVATE_KEY is not set")
 	}
-	return sponsorclient.New(context.Background(), fmt.Sprintf("https://open-platform-ap.nodereal.io/%s/megafuel-testnet/97", key))
+	return sponsorclient.New(context.Background(), fmt.Sprintf("https://open-platform-ap.nodereal.io/%s/megafuel-testnet", key))
 }
 
 // TestSponsorAPI conducts several whitelist operations.

@@ -16,7 +16,7 @@ type Client interface {
 	// IsSponsorable checks if a transaction is sponsorable
 	IsSponsorable(ctx context.Context, tx TransactionArgs) (*IsSponsorableResponse, error)
 	// SendRawTransaction sends a raw transaction to the connected domain
-	SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts *SendRawTransactionOptions) (common.Hash, error)
+	SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts *TransactionOptions) (common.Hash, error)
 	// GetGaslessTransactionByHash returns a gasless transaction by hash
 	GetGaslessTransactionByHash(ctx context.Context, txHash common.Hash) (userTx *TransactionResponse, err error)
 
@@ -82,7 +82,7 @@ func (c *client) IsSponsorable(ctx context.Context, tx TransactionArgs) (*IsSpon
 	return &result, nil
 }
 
-func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts *SendRawTransactionOptions) (common.Hash, error) {
+func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes, opts *TransactionOptions) (common.Hash, error) {
 	var result common.Hash
 
 	if opts != nil {
