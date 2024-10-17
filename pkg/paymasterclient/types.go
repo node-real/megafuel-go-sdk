@@ -18,8 +18,8 @@ type TransactionArgs struct {
 
 // TransactionOptions defines the options for the SendRawTransaction method.
 type TransactionOptions struct {
-	// UserAgent is an optional field to set a custom User-Agent header for the request.
-	UserAgent string
+	// WalletToTrace is an optional field to set a custom User-Agent header for the request.
+	WalletToTrace string
 }
 
 type IsSponsorableResponse struct {

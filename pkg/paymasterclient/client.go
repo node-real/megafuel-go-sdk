@@ -86,8 +86,8 @@ func (c *client) SendRawTransaction(ctx context.Context, input hexutil.Bytes, op
 	var result common.Hash
 
 	if opts != nil {
-		if opts.UserAgent != "" {
-			c.c.SetHeader("User-Agent", opts.UserAgent)
+		if opts.WalletToTrace != "" {
+			c.c.SetHeader("User-Agent", opts.WalletToTrace)
 		}
 	}
 

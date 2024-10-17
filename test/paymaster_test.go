@@ -247,7 +247,7 @@ func TestPrivatePolicyGaslessTransaction(t *testing.T) {
 	txInput, err := signedTx.MarshalBinary()
 	require.NoError(t, err, "Failed to marshal transaction")
 
-	transaction, err := sponsorClient.SendRawTransaction(context.Background(), txInput, &paymasterclient.TransactionOptions{UserAgent: "Test User Agent"})
+	transaction, err := sponsorClient.SendRawTransaction(context.Background(), txInput, &paymasterclient.TransactionOptions{WalletToTrace: "Test User Agent"})
 	require.NoError(t, err, "Failed to send sponsorable private policy transaction")
 	log.Infof("Sponsorable private policy transaction sent: %s", signedTx.Hash())
 	time.Sleep(10 * time.Second) // Consider replacing with a non-blocking wait or event-driven notification.
